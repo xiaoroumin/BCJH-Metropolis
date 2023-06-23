@@ -2,6 +2,7 @@
 #include "Chef.hpp"
 #include <cmath>
 
+int strangebuff_handle(Chef &chef, Recipe &recipe, dishBuff &rb);
 int getPrice(Chef &chef, Recipe &recipe, ActivityBuff *activityBuff,
              bool verbose) {
     // if (verbose)
@@ -118,11 +119,7 @@ BanquetInfo getPrice(Chef *chef, Recipe *recipe, BanquetRule r, bool verbose) {
                     recipe->materialCategories * chef->skill.materialBuff +
                     rb.dishBuff + (chef->coinBuffOn ? chef->skill.coinBuff : 0);
     //strange buff handle start
-    int strangeBuff = 0;
-    if (~chef->skill.strangeBuff.ExcessCookbookNum.dishNum) {
-        if (rb.dishNum >= chef->skill.strangeBuff.ExcessCookbookNum.dishNum)
-            strangeBuff += chef->skill.strangeBuff.ExcessCookbookNum.dishBuff;
-    }
+    int strangeBuff = strangebuff_handle(*chef, *recipe, rb);
     skillBuff += strangeBuff;
     //strange buff handle end
     int buff = gradebuff + skillBuff + intentionAddBuff;
@@ -157,4 +154,13 @@ BanquetInfo getPrice(Chef *chef, Recipe *recipe, BanquetRule r, bool verbose) {
     }
     BanquetInfo b = {totalPrice, full};
     return b;
+}
+
+int strangebuff_handle(Chef &chef, Recipe &recipe, dishBuff &rb) {
+    int strangeBuff = 0;
+    if (~chef.skill.strangeBuff.ExcessCookbookNum.dishNum) {
+        if (rb.dishNum >= chef.skill.strangeBuff.ExcessCookbookNum.dishNum)
+            strangeBuff += chef.skill.strangeBuff.ExcessCookbookNum.dishBuff;
+    }
+    return strangeBuff;
 }

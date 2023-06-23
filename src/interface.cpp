@@ -55,7 +55,10 @@ void interact(){
         char op[100];
         cout << "是否要从云端下载白菜菊花数据(仅第一次运行需要)? yes or no? 输入y或者n" << endl;
         cin >> op;
-        if (op[0] != 'y' && op[0] != 'Y') return;
+        if (op[0] != 'y' && op[0] != 'Y') {
+            cout << "你选择使用本地数据" << endl;
+            return;
+        }
         cout << "请输入你的白菜菊花云端id:" << endl;
         char id[10]={0};
         cin >> id;
@@ -63,7 +66,7 @@ void interact(){
         concat(command, id);
         
         int status = system(command);
-        cout << "status " << status << endl;
+        // cout << endl << "ret " << status % 256 << endl << "ret " << status / 256 << endl;
         if (status == 1)
             throw "找不到bcjhDownload.exe，请确认data文件下有这个下载程序且没有被杀毒软件杀掉";
 
@@ -71,6 +74,7 @@ void interact(){
         std::ifstream tmpDataF("../data/tmp.txt", std::ifstream::binary);
         tmpDataF >> tmpData;
         tmpDataF.close();
+        // cout << "临时数据下载成功" << endl;
         if (tmpData["result"].asBool())
             cout << "数据下载成功" << endl;
         else
@@ -99,7 +103,10 @@ void Lincece() {
 }
 
 void examine_iter() {
-    if (1ll * ITER_CHEF * ITER_RECIPE < 100000000ll) {
+    if (1ll * ITER_CHEF * ITER_RECIPE < 20000000ll) {
+        cout << "检测到迭代次数过少!!!" << endl;
+        cout << "请阅读目录下的说明文档更改迭代数!!!" << endl;
+        cout << "否则跑分效果极差，不要说你用过我的计算器!!!" << endl;
         MessageBoxA(GetForegroundWindow(),
         "检测到迭代次数过少!!!\n"
         "请阅读目录下的说明文档更改迭代数!!!\n"
@@ -174,5 +181,7 @@ void readINI(){
     AVOID_CHEF_5 = stobool(ini.GetValue("calculator", "AVOID_CHEF_5", "false"));
 
     T_MAX_CHEF = stoi(ini.GetValue("calculator", "T_MAX_CHEF", "50"));
+    T_MAX_CHEF = TARGET_SCORE_APPROXIMATE / T_MAX_CHEF;
     T_MAX_RECIPE = stoi(ini.GetValue("calculator", "T_MAX_RECIPE", "50"));
+    T_MAX_RECIPE = TARGET_SCORE_APPROXIMATE / T_MAX_RECIPE;
 }

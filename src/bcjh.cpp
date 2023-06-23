@@ -18,7 +18,7 @@ void initChefRecipePairs(CRPairs &, std::map<int, Chef> &,
                          std::map<int, Recipe> &);
 int run(CList &, RList &, CRPairs &, int, bool);
 void calculator(CList &, RList &, CRPairs &);
-void add_halo(States);
+void add_halo(States &);
 int main(int argc, char *argv[]) {
     int opt;
     bool silent = false;
@@ -150,16 +150,13 @@ void calculator(CList &chefList, RList &recipeList, CRPairs &p) {
     std::cout << "\n\nScore: " << score << std::endl;
 }
 
-void add_halo(States s) {
+void add_halo(States &s) {
     for (int g = 0; g < NUM_GUESTS; g++) {
         for (int i = g * CHEFS_PER_GUEST; i < CHEFS_PER_GUEST * (g + 1); i++) {
             if (s.chef[i]->skill.halo) {
                 if (MODE == 1) {//宴会模式，光环只对后面的角色生效
-                    SkillHalo skillHalo = s.chef[i]->skill.skillHalo;
-                    BuffHalo buffHalo = s.chef[i]->skill.buffHalo;
                     for (int k = i; k < CHEFS_PER_GUEST * (g + 1); k++) {
-                        s.chef[k]->skill.ability.add(skillHalo);
-                        s.chef[k]->skill.abilityBuff.add(buffHalo);
+                        s.chef[k]->skill.ability.add(s.chef[i]->skill.skillHalo);
                     }
                 }
             }

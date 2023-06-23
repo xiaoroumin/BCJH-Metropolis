@@ -148,14 +148,6 @@ class SkillHalo : public Ability {
     SkillHalo() : Ability() {}
     void print() { this->Ability::print("SkillHalo: "); }
 };
-// 售价光环
-class BuffHalo : public Ability {
-  public:
-    BuffHalo(int stirfry, int bake, int boil, int steam, int fry, int knife)
-        : Ability(stirfry, bake, boil, steam, fry, knife) {}
-    BuffHalo() : Ability() {}
-    void print() { this->Ability::print("BuffHalo: "); }
-};
 // 技法光环:Next
 class SkillHaloNext : public Ability {
   public:
@@ -177,16 +169,15 @@ class Skill {
     int coinBuff;
     bool halo;
     SkillHalo skillHalo;
-    BuffHalo buffHalo;
     bool halo_next;
     SkillHaloNext skillHaloNext;
     Skill(CookAbility ability, AbilityBuff abilityBuff, FlavorBuff flavorBuff, RarityBuff rarityBuff, 
           MaterialCategoryBuff materialBuff, StrangeBuff strangeBuff,int coinBuff,
-          bool halo, SkillHalo skillHalo, BuffHalo buffHalo,
+          bool halo, SkillHalo skillHalo,
           bool halo_next, SkillHaloNext skillHaloNext)
         : ability(ability), abilityBuff(abilityBuff), flavorBuff(flavorBuff), rarityBuff(rarityBuff),
           materialBuff(materialBuff), strangeBuff(strangeBuff), coinBuff(coinBuff),
-          halo(halo), skillHalo(skillHalo), buffHalo(buffHalo), 
+          halo(halo), skillHalo(skillHalo), 
           halo_next(halo_next), skillHaloNext(skillHaloNext){}
     Skill() {
         this->ability = CookAbility();
@@ -198,7 +189,6 @@ class Skill {
         this->coinBuff = 0;
         this->halo = false;
         this->skillHalo = SkillHalo();
-        this->buffHalo = BuffHalo();
         this->halo_next = false;
         this->skillHaloNext = SkillHaloNext();
     }
@@ -214,7 +204,6 @@ class Skill {
         this->coinBuff += s.coinBuff;
         this->halo |= s.halo;
         this->skillHalo.add(s.skillHalo);
-        this->buffHalo.add(s.buffHalo);
         this->halo_next |= s.halo_next;
         this->skillHaloNext.add(s.skillHaloNext);
     }
@@ -229,7 +218,6 @@ class Skill {
         if (this->halo){
             std::cout << "Halo: " << std::endl;
             this->skillHalo.print();
-            this->buffHalo.print();
         }
         if (this->halo_next){
             std::cout << "Halo_next: " << std::endl;
