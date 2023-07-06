@@ -2,6 +2,7 @@
 #define VALUE_HPP
 #include <iostream>
 #include "include/json/json.h"
+#include <math.h>
 struct DishBuff {
     int dishNum;
     int dishBuff = 0;
@@ -113,22 +114,47 @@ class AbilityBuff : public Ability {
     void print() { this->Ability::print("AbilityBuff: "); }
 };
 class CookAbility : public Ability {
+    
 
   public:
+    Ability percent;
     CookAbility(int stirfry, int bake, int boil, int steam, int fry, int knife)
         : Ability(stirfry, bake, boil, steam, fry, knife) {}
     CookAbility() : Ability() {}
     CookAbility(Json::Value &v);
     int operator/(const Ability &a);
-    void print() { this->Ability::print("CookAbility: "); }
+    void print() {
+        this->Ability::print("CookAbility: ");
+        this->percent.print("CookAbilityPercent: ");
+    }
+    void add(const CookAbility &a) {
+        this->Ability::add(a);
+        this->percent.add(a.percent);
+    }
+    void add(const Ability &a) {
+        this->Ability::add(a);
+    }
+    void add(int a){
+        this->Ability::add(a);
+    }
     int operator*(const AbilityBuff &a);
+    void handle_percent() {
+        this->stirfry = int(ceil(this->stirfry * (this->percent.stirfry + 100) / 100.0));
+        this->bake = int(ceil(this->bake * (this->percent.bake + 100) / 100.0));
+        this->boil = int(ceil(this->boil * (this->percent.boil + 100) / 100.0));
+        this->steam = int(ceil(this->steam * (this->percent.steam + 100) / 100.0));
+        this->fry = int(ceil(this->fry * (this->percent.fry + 100) / 100.0));
+        this->knife = int(ceil(this->knife * (this->percent.knife + 100) / 100.0));
+    }
 };
 class StrangeBuff {
   public:
     DishBuff ExcessCookbookNum;
+    DishBuff Rank;
 
     StrangeBuff() {
         this->ExcessCookbookNum.dishNum = -1;
+        this->Rank.dishNum = -1;
     }
     void add(const StrangeBuff &s) {
         if (~s.ExcessCookbookNum.dishNum) {
@@ -140,10 +166,23 @@ class StrangeBuff {
                 this->ExcessCookbookNum.dishBuff = s.ExcessCookbookNum.dishBuff;
             }
         }
+        if (~s.Rank.dishNum) {
+            if (~this->Rank.dishNum) {
+                //不许不else,很难想象不else会发生什么
+                this->Rank.dishBuff += s.Rank.dishBuff;
+            } else {
+                this->Rank.dishNum = s.Rank.dishNum;
+                this->Rank.dishBuff = s.Rank.dishBuff;
+            }
+        }
     }
     void print() {
-        std::cout << "ExcessCookbookNum: " << this->ExcessCookbookNum.dishNum 
-                << "(" << this->ExcessCookbookNum.dishBuff << ")" << std::endl;
+        if (~this->ExcessCookbookNum.dishNum)
+            std::cout << "ExcessCookbookNum: " << this->ExcessCookbookNum.dishNum 
+                    << "(" << this->ExcessCookbookNum.dishBuff << ")" << std::endl;
+        if (~this->Rank.dishNum)
+            std::cout << "Rank: " << this->Rank.dishNum 
+                    << "(" << this->Rank.dishBuff << ")" << std::endl;
     }
 };
 // 技法光环

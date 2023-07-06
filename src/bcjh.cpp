@@ -225,4 +225,7 @@ void add_halo(States *s) {
             }
         }
     }
+    for (int i = 0; i < NUM_CHEFS; i++) {
+        s->chef[i]->skill.ability.handle_percent();
+    }
 }

@@ -162,5 +162,9 @@ int strangebuff_handle(Chef &chef, Recipe &recipe, DishBuff &rb) {
         if (rb.dishNum >= chef.skill.strangeBuff.ExcessCookbookNum.dishNum)
             strangeBuff += chef.skill.strangeBuff.ExcessCookbookNum.dishBuff;
     }
+    if (~chef.skill.strangeBuff.Rank.dishNum) {
+        if (chef.skill.ability / recipe.cookAbility >= chef.skill.strangeBuff.Rank.dishNum)
+            strangeBuff += chef.skill.strangeBuff.Rank.dishBuff;
+    }
     return strangeBuff;
 }

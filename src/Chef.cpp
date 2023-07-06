@@ -211,17 +211,41 @@ void Skill::loadJson(Json::Value &v) {
                 if (type == "Gold_Gain") {
                     skill->coinBuff = value;
                 } else if (type == "Stirfry") {
-                    skill->ability.stirfry = value;
+                    if (effect["cal"] == "Abs") {
+                        skill->ability.stirfry = value;                        
+                    } else if (effect["cal"] == "Percent") {
+                        skill->ability.percent.stirfry = value;
+                    }
                 } else if (type == "Bake") {
-                    skill->ability.bake = value;
+                    if (effect["cal"] == "Abs") {
+                        skill->ability.bake = value;                        
+                    } else if (effect["cal"] == "Percent") {
+                        skill->ability.percent.bake = value;
+                    }
                 } else if (type == "Boil") {
-                    skill->ability.boil = value;
+                    if (effect["cal"] == "Abs") {
+                        skill->ability.boil = value;                        
+                    } else if (effect["cal"] == "Percent") {
+                        skill->ability.percent.boil = value;
+                    }
                 } else if (type == "Steam") {
-                    skill->ability.steam = value;
+                    if (effect["cal"] == "Abs") {
+                        skill->ability.steam = value;                        
+                    } else if (effect["cal"] == "Percent") {
+                        skill->ability.percent.steam = value;
+                    }
                 } else if (type == "Fry") {
-                    skill->ability.fry = value;
+                    if (effect["cal"] == "Abs") {
+                        skill->ability.fry = value;                        
+                    } else if (effect["cal"] == "Percent") {
+                        skill->ability.percent.fry = value;
+                    }
                 } else if (type == "Knife") {
-                    skill->ability.knife = value;
+                    if (effect["cal"] == "Abs") {
+                        skill->ability.knife = value;                        
+                    } else if (effect["cal"] == "Percent") {
+                        skill->ability.percent.knife = value;
+                    }
                 } else if (type == "UseStirfry") {
                     skill->abilityBuff.stirfry = value;
                 } else if (type == "UseBake") {
@@ -258,13 +282,19 @@ void Skill::loadJson(Json::Value &v) {
                     std::string conditionType =
                         effect["conditionType"].asString();
                     if (conditionType == "CookbookRarity") {
-                        int num = effect["conditionValue"].asInt();
-                        skill->rarityBuff.rarityBuff[num] = value;
+                        for (auto num : effect["conditionValueList"]) {
+                            skill->rarityBuff.rarityBuff[num.asInt() - 1] = value;
+                        }
                     }
                     if (conditionType == "ExcessCookbookNum") {
                         int num = effect["conditionValue"].asInt();
                         skill->strangeBuff.ExcessCookbookNum.dishNum = num;
                         skill->strangeBuff.ExcessCookbookNum.dishBuff = value;
+                    }
+                    if (conditionType == "Rank") {
+                        int num = effect["conditionValue"].asInt();
+                        skill->strangeBuff.Rank.dishNum = num;
+                        skill->strangeBuff.Rank.dishBuff = value;
                     }
                 }
             } else

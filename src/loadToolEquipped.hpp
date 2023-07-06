@@ -33,16 +33,10 @@ ToolInfoBlock *tibptr;
 
 ToolFileType loadToolFile() {
 
-    auto fname = "toolEquipped.csv";
+    auto fname = "../data/toolEquipped.csv";
     ifstream toolFile(fname, ios::in);
 
-    if (!toolFile.good()) {
-
-        auto fname = "..\\data\\toolEquipped.csv";
-        ifstream toolFile(fname, ios::in);
-        if (!toolFile.good())
-            tibptr = NULL;
-
+    if (!toolFile.good()) {        
         return NO_FILE__NO_TOOL;
     }
     string line;
@@ -183,40 +177,43 @@ CSVWarning loadToolFromFile(Chef *chef, ToolFileType t) {
         auto materialBuff = &skill->materialBuff;
         try {
             if (tool[j][0] == '*') {
-                ability->multiply(str2f(tool[j++].substr(1)));
+                ability->percent.add(int(str2f(tool[j++].substr(1)) * 100 - 100));
             } else {
                 ability->add(str2i(tool[j++]));
             }
             if (tool[j][0] == '*') {
-                ability->bake = int(ability->bake * str2f(tool[j++].substr(1)));
+                ability->percent.bake += 
+                    int(str2f(tool[j++].substr(1)) * 100 - 100);
             } else {
                 ability->bake += str2i(tool[j++]);
             }
             if (tool[j][0] == '*') {
-                ability->knife =
-                    int(ability->knife * str2f(tool[j++].substr(1)));
+                ability->percent.knife +=
+                    int(str2f(tool[j++].substr(1)) * 100 - 100);
             } else {
                 ability->knife += str2i(tool[j++]);
             }
             if (tool[j][0] == '*') {
-                ability->stirfry =
-                    int(ability->stirfry * str2f(tool[j++].substr(1)));
+                ability->percent.stirfry +=
+                    int(str2f(tool[j++].substr(1)) * 100 - 100);
             } else {
                 ability->stirfry += str2i(tool[j++]);
             }
             if (tool[j][0] == '*') {
-                ability->fry = int(ability->fry * str2f(tool[j++].substr(1)));
+                ability->percent.fry +=
+                    int(str2f(tool[j++].substr(1)) * 100 - 100);
             } else {
                 ability->fry += str2i(tool[j++]);
             }
             if (tool[j][0] == '*') {
-                ability->steam =
-                    int(ability->steam * str2f(tool[j++].substr(1)));
+                ability->percent.steam +=
+                    int(str2f(tool[j++].substr(1)) * 100 - 100);
             } else {
                 ability->steam += str2i(tool[j++]);
             }
             if (tool[j][0] == '*') {
-                ability->boil = int(ability->boil * str2f(tool[j++].substr(1)));
+                ability->percent.boil += 
+                    int(str2f(tool[j++].substr(1)) * 100 - 100);
             } else {
                 ability->boil += str2i(tool[j++]);
             }
