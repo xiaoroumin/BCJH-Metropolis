@@ -8,7 +8,7 @@
 #include <exception>
 #include "Chef.hpp"
 #include "Values.hpp"
-#include <map>
+#include <vector>
 
 class Materials {
   public:
@@ -107,7 +107,7 @@ class Recipe {
     void getMaterials(Json::Value &materialsJson);
 
   public:
-    static dishBuff rarityBuff[5];
+    static DishBuff rarityBuff[5];
     std::string name;
     int id;
     int rarity;
@@ -121,5 +121,6 @@ class Recipe {
     void print();
     static void initRarityBuff(Json::Value &usrBuff);
 };
-void loadRecipe(std::map<int, Recipe> &recipeList);
+typedef std::vector<Recipe> RList;
+void loadRecipe(RList &recipeList);
 #endif

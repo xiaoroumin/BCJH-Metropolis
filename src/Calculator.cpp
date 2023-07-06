@@ -2,7 +2,7 @@
 #include "Chef.hpp"
 #include <cmath>
 
-int strangebuff_handle(Chef &chef, Recipe &recipe, dishBuff &rb);
+int strangebuff_handle(Chef &chef, Recipe &recipe, DishBuff &rb);
 int getPrice(Chef &chef, Recipe &recipe, ActivityBuff *activityBuff,
              bool verbose) {
     // if (verbose)
@@ -156,7 +156,7 @@ BanquetInfo getPrice(Chef *chef, Recipe *recipe, BanquetRule r, bool verbose) {
     return b;
 }
 
-int strangebuff_handle(Chef &chef, Recipe &recipe, dishBuff &rb) {
+int strangebuff_handle(Chef &chef, Recipe &recipe, DishBuff &rb) {
     int strangeBuff = 0;
     if (~chef.skill.strangeBuff.ExcessCookbookNum.dishNum) {
         if (rb.dishNum >= chef.skill.strangeBuff.ExcessCookbookNum.dishNum)

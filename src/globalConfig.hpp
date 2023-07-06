@@ -6,6 +6,9 @@
 #define DISH_PER_CHEF 3
 #define CHEFS_PER_GUEST 3
 
+//多线程开关
+extern bool MP;
+
 extern int NUM_GUESTS;
 extern int NUM_CHEFS;
 extern int guestList[MAX_GUESTS]; 
@@ -18,8 +21,6 @@ extern int TARGET_SCORE_APPROXIMATE;
 
 extern int ITER_CHEF; // 选择厨师时的迭代次数
 extern int ITER_RECIPE; // 对于每一组厨师，选择菜谱时的迭代次数
-
-extern bool AVOID_TOOL;
 
 extern bool AVOID_CHEF_1;
 extern bool AVOID_CHEF_2;

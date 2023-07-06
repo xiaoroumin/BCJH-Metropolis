@@ -2,7 +2,7 @@
 #define VALUE_HPP
 #include <iostream>
 #include "include/json/json.h"
-struct dishBuff {
+struct DishBuff {
     int dishNum;
     int dishBuff = 0;
 };
@@ -51,16 +51,15 @@ class FlavorBuff {
 };
 class RarityBuff {
   public:
-    int rarityBuff[5];
-
-    RarityBuff() { for (int i = 0; i < 5; i++) this->rarityBuff[i]=0; }
-    RarityBuff(int r[5]) { for (int i = 0; i < 5; i++) this->rarityBuff[i]=r[i]; }
+    int rarityBuff[5] = {0, 0, 0, 0, 0};
     void add(const RarityBuff &r) { for (int i = 0; i < 5; i++) this->rarityBuff[i] += r.rarityBuff[i]; }
     void print() {
         std::cout << "RarityBuff: ";
         for (int i = 0; i < 5; i++)  std::cout << i + 1 << "火(" << this->rarityBuff[i] << ") ";
         std::cout << std::endl;
     }
+    /*几火就是几，不用减一*/
+    int &operator[](int i) { return rarityBuff[i - 1]; }
 };
 class Ability {
   public:
@@ -74,7 +73,14 @@ class Ability {
     Ability(int stirfry, int bake, int boil, int steam, int fry, int knife)
         : stirfry(stirfry), bake(bake), boil(boil), steam(steam), fry(fry),
           knife(knife) {}
-
+    void multiply(double a) {
+        this->stirfry = int(this->stirfry * a);
+        this->bake = int(this->bake * a);
+        this->boil = int(this->boil * a);
+        this->steam = int(this->steam * a);
+        this->fry = int(this->fry * a);
+        this->knife = int(this->knife * a);
+    }
     void add(const Ability &a) {
         this->stirfry += a.stirfry;
         this->bake += a.bake;
@@ -119,7 +125,7 @@ class CookAbility : public Ability {
 };
 class StrangeBuff {
   public:
-    dishBuff ExcessCookbookNum;
+    DishBuff ExcessCookbookNum;
 
     StrangeBuff() {
         this->ExcessCookbookNum.dishNum = -1;
@@ -127,7 +133,7 @@ class StrangeBuff {
     void add(const StrangeBuff &s) {
         if (~s.ExcessCookbookNum.dishNum) {
             if (~this->ExcessCookbookNum.dishNum) {
-                //不许不else,很难想象else会发生什么
+                //不许不else,很难想象不else会发生什么
                 this->ExcessCookbookNum.dishBuff += s.ExcessCookbookNum.dishBuff;
             } else {
                 this->ExcessCookbookNum.dishNum = s.ExcessCookbookNum.dishNum;
@@ -225,7 +231,7 @@ class Skill {
         }
     }
 };
-enum AbilityEnum {
+enum ToolEnum {
     NO_TOOL = -2,
     NOT_EQUIPPED = -1,
     STIRFRY,
@@ -236,5 +242,9 @@ enum AbilityEnum {
     KNIFE
 };
 enum FlavorEnum { UNIDENTIFIED = -1, SWEET, SALTY, SOUR, BITTER, SPICY, TASTY };
-
+enum ToolFileType {
+    NO_FILE__NO_TOOL,
+    EMPTY_FILE__NOT_EQUIPPED,
+    CUSTOMIZE_TOOL
+};
 #endif

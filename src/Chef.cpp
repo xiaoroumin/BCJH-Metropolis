@@ -7,7 +7,10 @@
 #include "globalConfig.hpp"
 #include "Calculator.hpp"
 #include "utils/json.hpp"
-// #define jsonStr2Int(v) atoi(v.asCString())
+#include "../toolEquipped.hpp"
+#include "exception.hpp"
+#include "loadToolEquipped.hpp"
+
 CookAbility Chef::globalAbilityBuff;
 int Chef::globalAbilityMale = 0;
 int Chef::globalAbilityFemale = 0;
@@ -31,16 +34,38 @@ void loadUltimateSkills(std::map<int, int> &ultimateSkills,
     splitUltimateSkill(ultimateSkills, usrBuff["Partial"]["id"]);
     splitUltimateSkill(ultimateSkills, usrBuff["Self"]["id"]);
 }
-void loadChef(std::map<int, Chef> &chefList) {
-    Chef::coinBuffOn = true;
+void loadChef(CList &chefList) {
+    if (MODE == 2) {
+        Chef::coinBuffOn = false;
+    } else {
+        Chef::coinBuffOn = true;
+    }
     Json::Value usrData;
     Json::Value gameData;
-    std::ifstream gameDataF("../data/data.min.json", std::ifstream::binary);
-    std::ifstream usrDataF("../data/userData.txt", std::ifstream::binary);
+
+    // std::ifstream gameDataF("../data/data.min.json", std::ifstream::binary);
+    // std::ifstream usrDataF("../data/userData.json", std::ifstream::binary);
+
+    std::ifstream gameDataF("data.min.json", std::ifstream::binary);
+    if (!gameDataF.good()) {
+        gameDataF.open("../data/data.min.json", std::ifstream::binary);
+        if (!gameDataF.good()) {
+            throw FileNotExistException();
+        }
+    }
+    std::ifstream usrDataF("userData.txt", std::ifstream::binary);
+    if (!usrDataF.good()) {
+        usrDataF.open("../data/userData.txt", std::ifstream::binary);
+        if (!usrDataF.good()) {
+            throw FileNotExistException();
+        }
+    }
+
     usrDataF >> usrData;
     usrDataF.close();
     gameDataF >> gameData;
     gameDataF.close();
+
     initBuff(usrData["userUltimate"]);
     const Json::Value chefs = gameData["chefs"];
     Skill::loadJson(gameData["skills"]);
@@ -68,18 +93,41 @@ void loadChef(std::map<int, Chef> &chefList) {
             }
 
             if (ultimateSkills.find(id) != ultimateSkills.end()) {
-                chefList[id] = Chef(chef, ultimateSkills[id]);
+                chefList.push_back(Chef(chef, ultimateSkills[id]));
             } else {
-                chefList[id] = Chef(chef, -1);
+                chefList.push_back(Chef(chef, -1));
             }
         }
     }
-    auto chefP = chefList.begin();
-    while (chefP != chefList.end()) {
-        auto chef = &chefP->second;
-        if (AVOID_TOOL) chef->tool = NO_TOOL;
-        chefP++;
+
+#ifdef _WIN32
+    auto t = loadToolFile();
+    if (t == EMPTY_FILE__NOT_EQUIPPED) {
+        std::cout << "toolEquipped.csv没有设定规则。允许所有厨师装备厨具。"
+                  << std::endl;
+    } else if (t == NO_FILE__NO_TOOL) {
+        std::cout << "未找到toolEquipped.csv文件。不会装配任何厨具。"
+                  << std::endl;
+    } else {
+        std::cout << "toolEquipped.csv文件已加载。" << std::endl;
     }
+    CSVWarning(w);
+    for (auto &chef : chefList) {
+        w += loadToolFromFile(&chef, t);
+    }
+    if (w.missingRarity3) {
+        std::cout
+            << "提示：当前版本toolEquipped."
+               "csv已支持“制作三火料理售价加成”，详见样例，但读取到的toolEquipp"
+               "ed.csv中没有这一项。默认“制作三火料理售价加成”均为0。"
+            << std::endl;
+    }
+#endif
+#ifdef __linux__
+    for (auto &chef : chefList) {
+        toolEquipped(&chef);
+    }
+#endif
 }
 /**
  * Chef
@@ -116,7 +164,7 @@ Chef::Chef(Json::Value &chef, int ultimateSkillId) {
     if (ultimateSkillId != -1) {
         this->addSkill(ultimateSkillId);
     }
-    this->tool = -1;
+    this->tool = NOT_EQUIPPED;
 }
 
 void Chef::print() {
@@ -211,7 +259,7 @@ void Skill::loadJson(Json::Value &v) {
                         effect["conditionType"].asString();
                     if (conditionType == "CookbookRarity") {
                         int num = effect["conditionValue"].asInt();
-                        skill->rarityBuff.rarityBuff[num - 1] += value;
+                        skill->rarityBuff.rarityBuff[num] = value;
                     }
                     if (conditionType == "ExcessCookbookNum") {
                         int num = effect["conditionValue"].asInt();
@@ -335,23 +383,7 @@ int CookAbility::operator*(const AbilityBuff &a) {
     return grade;
 }
 
-void loadChefTools(const std::map<int, Chef> &chefList,
-                   std::map<int, Chef> &newChefList) {
-    for (auto iter : chefList) {
-        int id = iter.first;
-        Chef chef = iter.second;
-        if (chef.tool != NO_TOOL) {
-            for (int i = 0; i < 6; i++) {
-                newChefList[id * 6 + i] = chef.addTool((AbilityEnum)i);
-            }
-        } else {
-            for (int i = 0; i < 6; i++) {
-                newChefList[id * 6 + i] = chef;
-            }
-        }
-    }
-}
-Chef Chef::addTool(AbilityEnum a) {
+Chef Chef::addTool_modify_name(ToolEnum a) {
     Chef newChef(*this);
     newChef.tool = a;
     switch (a) {
@@ -390,12 +422,114 @@ bool Chef::isCapable(Recipe *recipe) {
     }
     return false;
 }
-void Chef::loadRecipeCapable(std::map<int, Recipe> &recipeList) {
-    for (auto recipe = recipeList.begin(); recipe != recipeList.end();
-         recipe++) {
-        if (this->isCapable(&recipe->second)) {
-            // std::cout << &(chef->second) << std::endl;
-            this->recipeCapable.push_back(&recipe->second);
+void Chef::loadRecipeCapable(std::vector<Recipe> &recipeList) {
+    if (this->tool == NO_TOOL) {
+        for (auto &recipe : recipeList) {
+            if (this->isCapable(&recipe)) {
+                this->recipeCapable.push_back(&recipe);
+            }
         }
+    } else if (this->tool == NOT_EQUIPPED) {
+        std::vector<Recipe *> recipeListCopy;
+        for (auto &recipe : recipeList) {
+            recipeListCopy.push_back(&recipe);
+        }
+        for (int i = 0; i < 6; i++) {
+            this->modifyTool((ToolEnum)i);
+            auto iter = recipeListCopy.begin();
+            while (iter != recipeListCopy.end()) {
+                if (this->isCapable(*iter)) {
+                    this->recipeCapable.push_back(*iter);
+                    iter = recipeListCopy.erase(iter);
+                } else {
+                    iter++;
+                }
+            }
+        }
+        this->modifyTool(NOT_EQUIPPED);
     }
+}
+void Chef::modifyTool(ToolEnum a) {
+    if (this->tool == NO_TOOL)
+        return;
+    if (this->tool == a)
+        return;
+
+    switch (this->tool) {
+    case STIRFRY:
+        this->skill.ability.stirfry -= 100;
+        break;
+    case BAKE:
+        this->skill.ability.bake -= 100;
+        break;
+    case STEAM:
+        this->skill.ability.steam -= 100;
+        break;
+    case FRY:
+        this->skill.ability.fry -= 100;
+        break;
+    case BOIL:
+        this->skill.ability.boil -= 100;
+        break;
+    case KNIFE:
+        this->skill.ability.knife -= 100;
+        break;
+    default:
+        // NOT_EQUIPPED
+        break;
+    }
+    switch (a) {
+    case STIRFRY:
+        this->skill.ability.stirfry += 100;
+        break;
+    case BAKE:
+        this->skill.ability.bake += 100;
+        break;
+    case STEAM:
+        this->skill.ability.steam += 100;
+        break;
+    case FRY:
+        this->skill.ability.fry += 100;
+        break;
+    case BOIL:
+        this->skill.ability.boil += 100;
+        break;
+    case KNIFE:
+        this->skill.ability.knife += 100;
+        break;
+    default:
+        // NOT_EQUIPPED
+        break;
+    }
+    this->tool = a;
+}
+
+std::string getToolName(ToolEnum tool) {
+    std::string toolName;
+    switch (tool) {
+    case STIRFRY:
+        toolName = "炒";
+        break;
+    case BOIL:
+        toolName = "煮";
+        break;
+    case FRY:
+        toolName = "炸";
+        break;
+    case STEAM:
+        toolName = "蒸";
+        break;
+    case BAKE:
+        toolName = "烤";
+        break;
+    case KNIFE:
+        toolName = "切";
+        break;
+    case NO_TOOL:
+        toolName = "设定厨具";
+        break;
+    default:
+        toolName = "无厨具";
+    }
+    return toolName;
 }

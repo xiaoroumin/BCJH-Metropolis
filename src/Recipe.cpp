@@ -8,6 +8,7 @@
 #include <vector>
 #include "utils/json.hpp"
 #include "globalConfig.hpp"
+#include "exception.hpp"
 Recipe::Recipe(Json::Value &recipe) {
     this->name = recipe["name"].asString();
     this->id = recipe["recipeId"].asInt();
@@ -28,7 +29,7 @@ Recipe::Recipe(Json::Value &recipe) {
 //     flavor.sweet = flavorStr.find("Sweet") != std::string::npos;
 //     flavor.salty = flavorStr.find("Salty") != std::string::npos;
 //     flavor.sour = flavorStr.find("Sour") != std::string::npos;
-//     flavor.bitter = flavorStr.find("Bitter") != std::string::npos;
+//     flavor.bitter = fl   avorStr.find("Bitter") != std::string::npos;
 //     flavor.spicy = flavorStr.find("Spicy") != std::string::npos;
 //     flavor.tasty = flavorStr.find("Tasty") != std::string::npos;
 //     return flavor;
@@ -70,15 +71,31 @@ void Recipe::print() {
     this->cookAbility.print();
     this->flavor.print();
 }
-void loadRecipe(std::map<int, Recipe> &recipeList) {
+void loadRecipe(RList &recipeList) {
     Json::Value usrData;
-    std::ifstream gameDataF("../data/data.min.json", std::ifstream::binary);
-    // std::cout << gameDataF.fail() << std::endl;
     Json::Value gameData;
+    // std::ifstream gameDataF("../data/data.min.json", std::ifstream::binary);
+    // std::ifstream usrDataF("../data/userData.json", std::ifstream::binary);
+
+    std::ifstream gameDataF("data.min.json", std::ifstream::binary);
+    if (!gameDataF.good()) {
+        gameDataF.open("../data/data.min.json", std::ifstream::binary);
+        if (!gameDataF.good()) {
+            throw FileNotExistException();
+        }
+    }
+    std::ifstream usrDataF("userData.txt", std::ifstream::binary);
+    if (!usrDataF.good()) {
+        usrDataF.open("../data/userData.txt", std::ifstream::binary);
+        if (!usrDataF.good()) {
+            throw FileNotExistException();
+        }
+    }
+
+    // std::cout << gameDataF.fail() << std::endl;
     gameDataF >> gameData;
     gameDataF.close();
     // std::cout << "Game data loaded" << std::endl;
-    std::ifstream usrDataF("../data/userData.txt", std::ifstream::binary);
     usrDataF >> usrData;
     usrDataF.close();
     Recipe::initRarityBuff(usrData["userUltimate"]);
@@ -87,15 +104,15 @@ void loadRecipe(std::map<int, Recipe> &recipeList) {
     for (auto recipe : recipes) {
         int id = recipe["recipeId"].asInt();
         if (recipeGot[std::to_string(id)].asBool()) {
-            recipeList[id] = Recipe(recipe);
+            recipeList.push_back(Recipe(recipe));
         }
     }
 }
 
 // #define jsonStr2Int(v) atoi(v.asCString())
-dishBuff Recipe::rarityBuff[5];
+DishBuff Recipe::rarityBuff[5];
 void Recipe::initRarityBuff(Json::Value &usrBuff) {
-    dishBuff r[5];
+    DishBuff r[5];
     r[0].dishNum = 40;
     r[1].dishNum = 30;
     r[2].dishNum = 25;
